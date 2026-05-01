@@ -94,7 +94,6 @@ async def home(request: Request):
     <h2>USA Stock News</h2>
     """
 
-    # 入力フォーム
     html_form = f"""
     <form method="get">
         <input name="ticker" placeholder="例: QCOM, AAPL, MSFT" value="{ticker}">
@@ -102,15 +101,13 @@ async def home(request: Request):
     </form>
     """
 
-    # 初期表示（検索前）
     if ticker == "":
         return html_head + html_form + "</body></html>"
 
-    # ニュース取得
-    news = requests.get(
-        "https://stock-usa-news-api-hgdkbdane6gzhgem.japanwest-01.azurewebsites.net/tools/news",
-        params={"keyword": ticker}
-    ).json()
+    # ★ Azure / ローカルの両方で動く「自分自身の API URL」
+    api_url = request.url_for("get_news")
+
+    news = requests.get(api_url, params={"keyword": ticker}).json()
 
     html_news = "<h3>検索結果</h3>"
 
