@@ -21,7 +21,7 @@ def get_news(keyword: str):
         "engine": "google",
         "q": keyword + " stock news",
         "api_key": SERPER_API_KEY,
-        "num": 10
+        "num": 5
     }
 
     response = requests.get(url, params=params)
