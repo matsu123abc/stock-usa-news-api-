@@ -108,7 +108,7 @@ async def home(request: Request):
 
     # ニュース取得
     news = requests.get(
-        "http://127.0.0.1:8000/tools/news",
+        "https://stock-usa-news-api-hgdkbdane6gzhgem.japanwest-01.azurewebsites.net/tools/news",
         params={"keyword": ticker}
     ).json()
 
