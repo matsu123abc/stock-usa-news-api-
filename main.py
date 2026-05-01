@@ -105,8 +105,7 @@ async def home(request: Request):
         return html_head + html_form + "</body></html>"
 
     # ★ Azure / ローカルの両方で動く「自分自身の API URL」
-    base_url = str(request.base_url).rstrip("/")
-    api_url = f"{base_url}/tools/news"
+    api_url = "https://stock-usa-news-api-hgdkbdane6gzhgem.japanwest-01.azurewebsites.net/tools/news"
     news = requests.get(api_url, params={"keyword": ticker}).json()
 
     html_news = "<h3>検索結果</h3>"
