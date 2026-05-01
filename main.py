@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 import requests
 import os
@@ -10,9 +10,12 @@ load_dotenv()
 app = FastAPI()
 
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
+TRANSLATOR_KEY = os.getenv("TRANSLATOR_KEY")
+TRANSLATOR_ENDPOINT = os.getenv("TRANSLATOR_ENDPOINT")
+
 
 # -----------------------------
-# 英語ニュース検索 API
+# 英語ニュース検索 API（5件に制限）
 # -----------------------------
 @app.get("/tools/news")
 def get_news(keyword: str):
@@ -32,17 +35,16 @@ def get_news(keyword: str):
     def safe(v):
         return v if v is not None else ""
 
-    # ① top_stories
+    # top_stories
     for item in data.get("top_stories", []):
         articles.append({
             "title": safe(item.get("title")),
             "snippet": safe(item.get("snippet")),
             "link": safe(item.get("link")),
-            "source": safe(item.get("source")),
-            "date": safe(item.get("date"))
+            "source": safe(item.get("source"))
         })
 
-    # ② organic_results
+    # organic_results
     for item in data.get("organic_results", []):
         articles.append({
             "title": safe(item.get("title")),
@@ -51,7 +53,7 @@ def get_news(keyword: str):
             "source": safe(item.get("source"))
         })
 
-    # ③ news_results
+    # news_results
     for item in data.get("news_results", []):
         articles.append({
             "title": safe(item.get("title")),
@@ -60,10 +62,29 @@ def get_news(keyword: str):
             "source": safe(item.get("source"))
         })
 
-    # ★ ここで 5 件に制限する
+    # ★ 5件に制限
     articles = articles[:5]
 
     return {"keyword": keyword, "count": len(articles), "articles": articles}
+
+
+# -----------------------------
+# 翻訳 API（Azure Translator）
+# -----------------------------
+@app.get("/tools/translate")
+def translate(text: str):
+    headers = {
+        "Ocp-Apim-Subscription-Key": TRANSLATOR_KEY,
+        "Ocp-Apim-Subscription-Region": "japaneast",
+        "Content-Type": "application/json"
+    }
+    body = [{"text": text}]
+    url = f"{TRANSLATOR_ENDPOINT}/translate?api-version=3.0&to=ja"
+
+    res = requests.post(url, headers=headers, json=body)
+    ja = res.json()[0]["translations"][0]["text"]
+    return {"ja": ja}
+
 
 # -----------------------------
 # ストック価格 API
@@ -77,7 +98,7 @@ def stock_price(symbol: str):
 
 
 # -----------------------------
-# UI（ティッカー入力 → 英語ニュース一覧）
+# UI（翻訳ボタン付き）
 # -----------------------------
 @app.get("/", response_class=HTMLResponse)
 async def home():
@@ -87,7 +108,6 @@ async def home():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <style>
-        /* スマホ縦画面で文字を大きくする */
         @media screen and (orientation: portrait) {
             body {
                 font-size: 22px;
@@ -108,6 +128,7 @@ async def home():
                 padding: 14px;
                 width: 100%;
                 border-radius: 10px;
+                margin-top: 10px;
             }
             .card {
                 font-size: 20px;
@@ -119,6 +140,13 @@ async def home():
             a {
                 font-size: 22px;
                 font-weight: bold;
+            }
+            .ja {
+                margin-top: 10px;
+                padding: 10px;
+                background: #fff7d1;
+                border-radius: 8px;
+                font-size: 20px;
             }
         }
         </style>
@@ -140,16 +168,33 @@ async def home():
             const data = await res.json();
 
             let html = "<h3>検索結果</h3>";
+            let index = 0;
+
             for (const n of data.articles) {
                 html += `
                     <div class="card">
                         <a href="${n.link}" target="_blank">${n.title}</a><br>
                         <small>${n.source}</small><br>
                         <p>${n.snippet}</p>
+
+                        <button onclick="translateText(${index})">翻訳</button>
+                        <div id="ja_${index}" class="ja"></div>
                     </div>
                 `;
+                index++;
             }
             document.getElementById("result").innerHTML = html;
+        }
+
+        async function translateText(i) {
+            const card = document.getElementById("ja_" + i);
+            const eng = card.parentElement.querySelector("p").innerText;
+
+            const url = `/tools/translate?text=` + encodeURIComponent(eng);
+            const res = await fetch(url);
+            const data = await res.json();
+
+            card.innerHTML = data.ja;
         }
         </script>
     </body>
