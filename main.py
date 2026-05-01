@@ -175,7 +175,9 @@ async def home():
                     <div class="card">
                         <a href="${n.link}" target="_blank">${n.title}</a><br>
                         <small>${n.source}</small><br>
-                        <p>${n.snippet}</p>
+
+                        <!-- ★ 英語文にIDを付ける（確実に取得できる） -->
+                        <p id="eng_${index}">${n.snippet}</p>
 
                         <button onclick="translateText(${index})">翻訳</button>
                         <div id="ja_${index}" class="ja"></div>
@@ -187,14 +189,14 @@ async def home():
         }
 
         async function translateText(i) {
-            const card = document.getElementById("ja_" + i);
-            const eng = card.parentElement.querySelector("p").innerText;
+            // ★ IDで確実に英語文を取得
+            const eng = document.getElementById("eng_" + i).innerText;
 
             const url = `/tools/translate?text=` + encodeURIComponent(eng);
             const res = await fetch(url);
             const data = await res.json();
 
-            card.innerHTML = data.ja;
+            document.getElementById("ja_" + i).innerHTML = data.ja;
         }
         </script>
     </body>
