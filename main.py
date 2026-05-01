@@ -75,48 +75,36 @@ def stock_price(symbol: str):
 # UI（ティッカー入力 → 英語ニュース一覧）
 # -----------------------------
 @app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    ticker = request.query_params.get("ticker", "")
+async def home():
+    return """
+    <html>
+    <body>
+        <h2>USA Stock News</h2>
+        <input id="ticker" placeholder="例: QCOM, AAPL, MSFT">
+        <button onclick="search()">ニュース検索</button>
 
-    html_head = """
-    <html><head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body { font-family: sans-serif; padding: 20px; }
-        input { width: 100%; padding: 12px; font-size: 18px; }
-        button { width: 100%; padding: 12px; margin-top: 10px; font-size: 18px;
-                 background: #0078D4; color: white; border: none; border-radius: 6px; }
-        .card { padding: 15px; margin-top: 15px; border-radius: 8px;
-                background: #f2f2f2; }
-        a { text-decoration: none; color: #0078D4; font-weight: bold; }
-    </style>
-    </head><body>
-    <h2>USA Stock News</h2>
+        <div id="result"></div>
+
+        <script>
+        async function search() {
+            const t = document.getElementById("ticker").value;
+            const url = `/tools/news?keyword=${t}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            let html = "<h3>検索結果</h3>";
+            for (const n of data.articles) {
+                html += `
+                    <div>
+                        <a href="${n.link}" target="_blank">${n.title}</a><br>
+                        <small>${n.source}</small><br>
+                        <p>${n.snippet}</p>
+                    </div>
+                `;
+            }
+            document.getElementById("result").innerHTML = html;
+        }
+        </script>
+    </body>
+    </html>
     """
-
-    html_form = f"""
-    <form method="get">
-        <input name="ticker" placeholder="例: QCOM, AAPL, MSFT" value="{ticker}">
-        <button type="submit">ニュース検索</button>
-    </form>
-    """
-
-    if ticker == "":
-        return html_head + html_form + "</body></html>"
-
-    # ★ Azure / ローカルの両方で動く「自分自身の API URL」
-    api_url = "https://stock-usa-news-api-hgdkbdane6gzhgem.japanwest-01.azurewebsites.net/tools/news"
-    news = requests.get(api_url, params={"keyword": ticker}).json()
-
-    html_news = "<h3>検索結果</h3>"
-
-    for n in news["articles"]:
-        html_news += f"""
-        <div class="card">
-            <a href="{n['link']}" target="_blank">{n['title']}</a><br>
-            <small>{n.get('source','')}</small><br>
-            <p>{n.get('snippet','')}</p>
-        </div>
-        """
-
-    return html_head + html_form + html_news + "</body></html>"
