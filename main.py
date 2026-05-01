@@ -78,8 +78,50 @@ def stock_price(symbol: str):
 async def home():
     return """
     <html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <style>
+        /* スマホ縦画面で文字を大きくする */
+        @media screen and (orientation: portrait) {
+            body {
+                font-size: 22px;
+                line-height: 1.6;
+                padding: 20px;
+            }
+            h2 {
+                font-size: 26px;
+                text-align: center;
+            }
+            input {
+                font-size: 22px;
+                padding: 14px;
+                width: 100%;
+            }
+            button {
+                font-size: 22px;
+                padding: 14px;
+                width: 100%;
+                border-radius: 10px;
+            }
+            .card {
+                font-size: 20px;
+                padding: 18px;
+                margin-top: 20px;
+                border-radius: 12px;
+                background: #f2f2f2;
+            }
+            a {
+                font-size: 22px;
+                font-weight: bold;
+            }
+        }
+        </style>
+    </head>
+
     <body>
         <h2>USA Stock News</h2>
+
         <input id="ticker" placeholder="例: QCOM, AAPL, MSFT">
         <button onclick="search()">ニュース検索</button>
 
@@ -95,7 +137,7 @@ async def home():
             let html = "<h3>検索結果</h3>";
             for (const n of data.articles) {
                 html += `
-                    <div>
+                    <div class="card">
                         <a href="${n.link}" target="_blank">${n.title}</a><br>
                         <small>${n.source}</small><br>
                         <p>${n.snippet}</p>
