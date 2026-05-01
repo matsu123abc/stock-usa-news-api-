@@ -32,6 +32,7 @@ def get_news(keyword: str):
     def safe(v):
         return v if v is not None else ""
 
+    # ① top_stories
     for item in data.get("top_stories", []):
         articles.append({
             "title": safe(item.get("title")),
@@ -41,6 +42,7 @@ def get_news(keyword: str):
             "date": safe(item.get("date"))
         })
 
+    # ② organic_results
     for item in data.get("organic_results", []):
         articles.append({
             "title": safe(item.get("title")),
@@ -49,6 +51,7 @@ def get_news(keyword: str):
             "source": safe(item.get("source"))
         })
 
+    # ③ news_results
     for item in data.get("news_results", []):
         articles.append({
             "title": safe(item.get("title")),
@@ -57,8 +60,10 @@ def get_news(keyword: str):
             "source": safe(item.get("source"))
         })
 
-    return {"keyword": keyword, "count": len(articles), "articles": articles}
+    # ★ ここで 5 件に制限する
+    articles = articles[:5]
 
+    return {"keyword": keyword, "count": len(articles), "articles": articles}
 
 # -----------------------------
 # ストック価格 API
