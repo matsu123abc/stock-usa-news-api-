@@ -188,10 +188,11 @@ async def home():
             for (const n of data.articles) {
                 html += `
                     <div class="card">
-                        <a href="${n.link}" target="_blank">${n.title}</a><br>
+                        <!-- ★ title に ID を付ける -->
+                        <a id="title_${index}" href="${n.link}" target="_blank">${n.title}</a><br>
                         <small>${n.source}</small><br>
 
-                        <!-- ★ 英語文にIDを付ける（確実に取得できる） -->
+                        <!-- ★ snippet に ID を付ける -->
                         <p id="eng_${index}">${n.snippet}</p>
 
                         <button onclick="translateText(${index})">翻訳</button>
@@ -204,8 +205,13 @@ async def home():
         }
 
         async function translateText(i) {
-            // ★ IDで確実に英語文を取得
-            const eng = document.getElementById("eng_" + i).innerText;
+            // ★ snippet を取得
+            let eng = document.getElementById("eng_" + i).innerText;
+
+            // ★ snippet が空なら title を翻訳する
+            if (!eng || eng.trim() === "") {
+                eng = document.getElementById("title_" + i).innerText;
+            }
 
             const url = `/tools/translate?text=` + encodeURIComponent(eng);
             const res = await fetch(url);
