@@ -75,11 +75,13 @@ def get_news(keyword: str):
 def translate(text: str):
     headers = {
         "Ocp-Apim-Subscription-Key": TRANSLATOR_KEY,
-        "Ocp-Apim-Subscription-Region": "japaneast",
+        "Ocp-Apim-Subscription-Region": "japanwest",   # ★ Japan West に修正
         "Content-Type": "application/json"
     }
     body = [{"text": text}]
-    url = f"{TRANSLATOR_ENDPOINT}/translate?api-version=3.0&to=ja"
+
+    base = TRANSLATOR_ENDPOINT.rstrip("/")
+    url = f"{base}/translate?api-version=3.0&to=ja"
 
     res = requests.post(url, headers=headers, json=body)
     ja = res.json()[0]["translations"][0]["text"]
