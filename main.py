@@ -73,19 +73,32 @@ def get_news(keyword: str):
 # -----------------------------
 @app.get("/tools/translate")
 def translate(text: str):
-    headers = {
-        "Ocp-Apim-Subscription-Key": TRANSLATOR_KEY,
-        "Ocp-Apim-Subscription-Region": "japanwest",   # ★ Japan West に修正
-        "Content-Type": "application/json"
-    }
-    body = [{"text": text}]
+    try:
+        headers = {
+            "Ocp-Apim-Subscription-Key": TRANSLATOR_KEY,
+            "Ocp-Apim-Subscription-Region": "japanwest",  # ★ Japan West
+            "Content-Type": "application/json"
+        }
 
-    base = TRANSLATOR_ENDPOINT.rstrip("/")
-    url = f"{base}/translate?api-version=3.0&to=ja"
+        body = [{"text": text}]
 
-    res = requests.post(url, headers=headers, json=body)
-    ja = res.json()[0]["translations"][0]["text"]
-    return {"ja": ja}
+        base = TRANSLATOR_ENDPOINT.rstrip("/")
+        url = f"{base}/translate?api-version=3.0&to=ja"
+
+        res = requests.post(url, headers=headers, json=body)
+
+        print("=== Translator Debug ===")
+        print("URL:", url)
+        print("Status:", res.status_code)
+        print("Response:", res.text)
+        print("========================")
+
+        ja = res.json()[0]["translations"][0]["text"]
+        return {"ja": ja}
+
+    except Exception as e:
+        print("Translate error:", e)
+        return {"ja": "翻訳エラー"}
 
 
 # -----------------------------
